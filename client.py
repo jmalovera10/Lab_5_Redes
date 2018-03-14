@@ -5,8 +5,8 @@ import datetime
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    server_address = (sys.argv[0], sys.argv[1])
-    object_amount = sys.argv[2]
+    server_address = (sys.argv[1], sys.argv[2])
+    object_amount = sys.argv[3]
     try:
         # Send data
         for i in range(object_amount):
