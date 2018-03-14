@@ -10,15 +10,13 @@ if __name__ == "__main__":
         print ( sys.stderr, '\nwaiting to receive message')
         data, client = sock.recvfrom(4096)
 
-        print ( sys.stderr, 'received %s bytes from %s' % (len(data), address))
+        print ( sys.stderr, 'received %s bytes from %s' % (len(data), client))
         print ( sys.stderr, data)
 
         if data:
             print(client)
-            print ( sys.stderr, 'sent %s bytes back to %s' % (sent, address))
             file=open(str(client),"w")
-            file.write("connection received")
-            file.write(data)
+            file.write(str(data))
             file.close()
 
 
