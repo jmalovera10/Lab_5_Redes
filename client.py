@@ -1,6 +1,6 @@
 import socket
 import sys
-import datetime
+from datetime import datetime
 
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -12,10 +12,10 @@ if __name__ == "__main__":
         for i in range(object_amount):
             message = {
                 "numeroSecuencia": i,
-                "marcaTiempo": str(datetime.datetime.now)
+                "marcaTiempo": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
             }
 
-            print(str(datetime.datetime.now))
+            print(message["marcaTiempo"])
 
             print(sys.stderr, 'sending "%s"' % message)
             sent = sock.sendto(str(message).encode('utf-8'), server_address)
