@@ -3,7 +3,7 @@ import sys
 
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server_address = ('localhost', 8080)
+    server_address = ('localhost', sys.argv[1])
     print >> sys.stderr, 'starting up on %s port %s' % server_address
     sock.bind(server_address)
     while True:
@@ -14,5 +14,7 @@ if __name__ == "__main__":
         print >> sys.stderr, data
 
         if data:
-            sent = sock.sendto(data, address)
+            data, client = sock.recvfrom(4096)
+            print(client)
             print >> sys.stderr, 'sent %s bytes back to %s' % (sent, address)
+            file=open
