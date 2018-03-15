@@ -11,7 +11,8 @@ if __name__ == "__main__":
         # Send data
         for i in range(object_amount):
             message = {
-                "numeroSecuencia": i,
+                "numeroSecuencia": i+1,
+                "tamSecuencia": object_amount,
                 "marcaTiempo": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
             }
 
