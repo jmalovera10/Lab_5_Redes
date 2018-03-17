@@ -11,12 +11,12 @@ if __name__ == "__main__":
         # Send data
         for i in range(object_amount):
             message = {
-                "numeroSecuencia": i+1,
-                "tamSecuencia": object_amount,
-                "marcaTiempo": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                "sequence": i+1,
+                "sequenceLength": object_amount,
+                "sentTime": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
             }
 
-            print(message["marcaTiempo"])
+            print(message["sentTime"])
 
             print(sys.stderr, 'sending "%s"' % message)
             sent = sock.sendto(str(message).encode('utf-8'), server_address)
