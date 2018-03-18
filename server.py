@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
         if data:
             print(client)
-            file=open(str(client),"w")
+            file=open(str(client),"a")
             file.write(str(data))
             file.close()
 
