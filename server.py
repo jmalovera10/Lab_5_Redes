@@ -12,6 +12,11 @@ class UDP_Server:
         total = data[0]["sequenceLength"]
         total -= len(data)
         return total
+        if data:
+            print(client)
+            file=open(str(client),"a")
+            file.write(str(data))
+            file.close()
 
     def calculateReceived(client):
         return len(client["data"])

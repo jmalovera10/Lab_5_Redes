@@ -103,3 +103,5 @@ ENV/
 
 # records folder
 clientRecords/
+files-received/
+.idea/
