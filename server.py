@@ -12,11 +12,7 @@ class UDP_Server:
         total = data[0]["sequenceLength"]
         total -= len(data)
         return total
-        if data:
-            print(client)
-            file=open(str(client),"a")
-            file.write(str(data))
-            file.close()
+        
 
     def calculateReceived(client):
         return len(client["data"])
@@ -31,7 +27,7 @@ class UDP_Server:
 
     if __name__ == "__main__":
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server_address = ('localhost', int(sys.argv[1]))
+        server_address = ('0.0.0.0', int(sys.argv[1]))
         print (sys.stderr, 'starting up on %s port %s' % server_address)
         sock.bind(server_address)
         clients = {}
@@ -43,37 +39,40 @@ class UDP_Server:
             print (sys.stderr, data)
 
             if data:
-                print(client)
-                parsedData = ast.literal_eval(data);
+				print(client)
+				parsedData = ast.literal_eval(data);
 
-                # Delay calculation
-                sendTime = int(
-                    time.mktime(datetime.strptime(parsedData["sentTime"], "%Y-%m-%d %H:%M:%S.%f").timetuple()))
-                now = int(time.mktime(datetime.utcnow().timetuple()))
-                delay = now - sendTime
-                parsedData["delay"] = "" + str(delay) + " ms"
-                print(str(delay) + " ms")
+				# Delay calculation
+				sendTime = int(
+					time.mktime(datetime.strptime(parsedData["sentTime"], "%Y-%m-%d %H:%M:%S.%f").timetuple()))
+				now = int(time.mktime(datetime.utcnow().timetuple()))
+				delay = now - sendTime
+				parsedData["delay"] = "" + str(delay) + " ms"
+				print(str(delay) + " ms")
 
-                # Store data in local variable
-                if not str(client) in clients:
-                    clients[str(client)] = {}
-                    clients[str(client)]["data"] = [parsedData]
-                else:
-                    clients[str(client)]["data"].append(parsedData)
+				# Store data in local variable
+				if not str(client) in clients:
+					clients[str(client)] = {}
+					clients[str(client)]["data"] = [parsedData]
+				else:
+					clients[str(client)]["data"].append(parsedData)
 
-                # Loss calculation
-                lost = calculateLoss(clients[str(client)])
-                clients[str(client)]["lost"] = lost
+				# Loss calculation
+				lost = calculateLoss(clients[str(client)])
+				clients[str(client)]["lost"] = lost
+				print("Loss: "+str(lost));
+				
+				# Received calculation
+				received = calculateReceived(clients[str(client)])
+				clients[str(client)]["received"] = received
 
-                # Received calculation
-                received = calculateReceived(clients[str(client)])
-                clients[str(client)]["received"] = received
+				
+				# Average delay calculation
+				average = averageDelay(clients[str(client)])
+				clients[str(client)]["averageDelay"] = average
+				print("Average: "+str(average)); 
 
-                # Average delay calculation
-                average = averageDelay(clients[str(client)])
-                clients[str(client)]["averageDelay"] = average
-
-                # File writing
-                file = open("./clientRecords/"+str(client), "w")
-                file.write(json.dumps(clients[str(client)], indent=2))
-                file.close()
+				# File writing
+				file = open("./clientRecords/"+str(client), "a")
+				file.write(json.dumps(clients[str(client)], indent=2))
+				file.close()
