@@ -1,30 +1,47 @@
 import socket
 import sys
+import ast
+import json
 from datetime import datetime
+import hashlib
 
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     server_address = (sys.argv[1], int(sys.argv[2]))
-    object_amount = int(sys.argv[3])
+    buffer_size = int(sys.argv[3])
+    file_request = sys.argv[4]
     try:
-        # Send data
-        for i in range(object_amount):
-            message = {
-                "sequence": i+1,
-                "sequenceLength": object_amount,
-                "sentTime": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-            }
+        # Send request
+        message = {
+            "request": file_request,
+            "sentTime": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        }
 
-            print(message["sentTime"])
+        print(str(message))
 
-            print(sys.stderr, 'sending "%s"' % message)
-            sent = sock.sendto(str(message).encode('utf-8'), server_address)
+        print(sys.stderr, 'sending "%s"' % message)
+        sent = sock.sendto(str(message).encode('utf-8'), server_address)
 
-            # Receive response
-            #print(sys.stderr, 'waiting to receive')
-            # data, server = sock.recvfrom(4096)
-            #print(sys.stderr, 'received "%s"' % data)
+        # Receive response
+        data = 1
+        while data != "":
+            print(sys.stderr, 'waiting to receive')
+            data, server = sock.recvfrom(buffer_size)
+            parsedData = ast.literal_eval(data);
+            hashm = parsedData["hash"]
+            del parsedData["hash"]
+            verify = hashlib.sha224(str(parsedData).encode('utf-8')).hexdigest()
+            if hashm == verify:
+                print(parsedData)
+                conver = unicode(parsedData["data"], errors='replace')
+                print(conver)
+                file = open("./files-received/" + file_request, "a")
+                file.write(ord(conver), indent=0)
+                file.close()
+                print(sys.stderr, 'received "%s"' % parsedData)
+            else:
+                print("Message " + str(parsedData["sequence"]) + " was corrupted")
 
     finally:
         print(sys.stderr, 'closing socket')
