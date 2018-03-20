@@ -1,9 +1,15 @@
 import socket
 import sys
 import ast
-import json
 from datetime import datetime
 import hashlib
+
+
+def calculateLoss(client):
+    data = client["data"]
+    total = data[0]["sequenceLength"]
+    total -= len(data)
+    return total
 
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -11,6 +17,11 @@ if __name__ == "__main__":
     server_address = (sys.argv[1], int(sys.argv[2]))
     buffer_size = int(sys.argv[3])
     file_request = sys.argv[4]
+    packet_amount = None
+    corrupted = 0
+    received = {
+        "data": []
+    }
     try:
         # Send request
         message = {
@@ -26,6 +37,7 @@ if __name__ == "__main__":
         # Receive response
         data = 1
         while data != "":
+            sock.settimeout(5)
             print(sys.stderr, 'waiting to receive')
             data, server = sock.recvfrom(buffer_size)
             parsedData = ast.literal_eval(data);
@@ -34,15 +46,19 @@ if __name__ == "__main__":
             verify = hashlib.sha224(str(parsedData).encode('utf-8')).hexdigest()
             if hashm == verify:
                 print(parsedData)
-                conver = unicode(parsedData["data"], errors='replace')
-                print(conver)
-                file = open("./files-received/" + file_request, "a")
-                file.write(ord(conver), indent=0)
-                file.close()
+                parsedData["integrity"] = "ACK"
                 print(sys.stderr, 'received "%s"' % parsedData)
+                if not packet_amount:
+                    packet_amount = parsedData["sequenceLength"]
             else:
                 print("Message " + str(parsedData["sequence"]) + " was corrupted")
-
+                parsedData["integrity"] = "NACK"
+                corrupted += 1
+            received["data"].append(parsedData)
+    except socket.timeout:
+        print("Connection timed out")
     finally:
         print(sys.stderr, 'closing socket')
+        print("Corrupted packages: "+str(corrupted))
+        print("Lost packages: "+str(calculateLoss(received)))
         sock.close()

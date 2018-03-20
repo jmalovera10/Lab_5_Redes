@@ -3,28 +3,8 @@ import threading
 import socket
 import sys
 from datetime import datetime
-import time
 import ast
 import hashlib
-
-
-class UDPServer:
-    def calculateLoss(client):
-        data = client["data"]
-        total = data[0]["sequenceLength"]
-        total -= len(data)
-        return total
-
-    def calculateReceived(client):
-        return len(client["data"])
-
-    def averageDelay(client):
-        data = client["data"]
-        average = 0
-        for d in data:
-            average += int(d["delay"].split(" ")[0])
-        average /= len(data)
-        return str(average) + " ms"
 
 
 class UDPWorker(threading.Thread):
@@ -37,12 +17,17 @@ class UDPWorker(threading.Thread):
         self.file_name = file_name
 
     def run(self):
-        file = open("./files-served/" + self.file_name, "r")
-        print(len(data))
+        file = open("./files-served/" + self.file_name, "rb")
+        file_len = 0
+        for line in file:
+            file_len+= 1
         i = 1
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, self.buffer_size)
+        file = open("./files-served/" + self.file_name, "rb")
         for line in file:
             message = {
                 "sequence": i,
+                "sequenceLength": file_len,
                 "data": line,
                 "sentTime": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
             }
@@ -71,15 +56,7 @@ if __name__ == "__main__":
 
         if data:
             print(client)
-            parsedData = ast.literal_eval(data);
-
-            # Delay calculation
-            sendTime = int(
-                time.mktime(datetime.strptime(parsedData["sentTime"], "%Y-%m-%d %H:%M:%S.%f").timetuple()))
-            now = int(time.mktime(datetime.utcnow().timetuple()))
-            delay = now - sendTime
-            parsedData["delay"] = "" + str(delay) + " ms"
-            print(str(delay) + " ms")
+            parsedData = ast.literal_eval(data)
 
             # Gets the requested file
             request = parsedData["request"]
