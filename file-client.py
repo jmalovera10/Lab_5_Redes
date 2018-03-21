@@ -1,6 +1,8 @@
+from __future__ import print_function
 import socket
 import sys
 import ast
+import time
 from datetime import datetime
 import hashlib
 
@@ -10,6 +12,7 @@ def calculateLoss(client):
     total = data[0]["sequenceLength"]
     total -= len(data)
     return total
+
 
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -22,6 +25,7 @@ if __name__ == "__main__":
     received = {
         "data": []
     }
+    sendTime = 0
     try:
         # Send request
         message = {
@@ -36,29 +40,32 @@ if __name__ == "__main__":
 
         # Receive response
         data = 1
+        sendTime = int(time.mktime(datetime.utcnow().timetuple()))
         while data != "":
-            sock.settimeout(5)
-            print(sys.stderr, 'waiting to receive')
+            sock.settimeout(0.5)
+            # print(sys.stderr, 'waiting to receive')
             data, server = sock.recvfrom(buffer_size)
             parsedData = ast.literal_eval(data);
             hashm = parsedData["hash"]
             del parsedData["hash"]
             verify = hashlib.sha224(str(parsedData).encode('utf-8')).hexdigest()
             if hashm == verify:
-                print(parsedData)
+                # print(parsedData)
                 parsedData["integrity"] = "ACK"
-                print(sys.stderr, 'received "%s"' % parsedData)
                 if not packet_amount:
                     packet_amount = parsedData["sequenceLength"]
             else:
-                print("Message " + str(parsedData["sequence"]) + " was corrupted")
+                # print("Message " + str(parsedData["sequence"]) + " was corrupted")
                 parsedData["integrity"] = "NACK"
                 corrupted += 1
             received["data"].append(parsedData)
     except socket.timeout:
         print("Connection timed out")
     finally:
+        now = int(time.mktime(datetime.utcnow().timetuple()))
+        timelapse = (now - sendTime)
         print(sys.stderr, 'closing socket')
-        print("Corrupted packages: "+str(corrupted))
-        print("Lost packages: "+str(calculateLoss(received)))
+        print("Time elapsed: " + str(timelapse) + " s")
+        print("Corrupted packages: " + str(corrupted))
+        print("Lost packages: " + str(calculateLoss(received)))
         sock.close()

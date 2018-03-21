@@ -17,27 +17,38 @@ class UDPWorker(threading.Thread):
         self.file_name = file_name
 
     def run(self):
-        file = open("./files-served/" + self.file_name, "rb")
-        file_len = 0
-        for line in file:
-            file_len+= 1
-        i = 1
+        file_len = {
+            "size": 0
+        }
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, self.buffer_size)
         file = open("./files-served/" + self.file_name, "rb")
-        for line in file:
+        i = 1
+        for piece in self.read_in_chunks(file, file_len, chunk_size=10240):
+            print("")
+        file = open("./files-served/" + self.file_name, "rb")
+        dummy = {"size": 0}
+        for piece in self.read_in_chunks(file, dummy, chunk_size=10240):
             message = {
                 "sequence": i,
-                "sequenceLength": file_len,
-                "data": line,
+                "sequenceLength": file_len["size"],
+                "data": piece,
                 "sentTime": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
             }
             hashm = hashlib.sha224(str(message).encode('utf-8')).hexdigest()
             message["hash"] = hashm
-            print(str(message))
+            #print(str(message))
             self.sock.sendto(str(message).encode('utf-8'), self.client)
             i += 1
 
         file.close()
+
+    def read_in_chunks(self, file_object, size, chunk_size=None):
+        while True:
+            data = file_object.read(chunk_size)
+            size["size"] += 1
+            if not data:
+                break
+            yield data
 
 
 if __name__ == "__main__":
