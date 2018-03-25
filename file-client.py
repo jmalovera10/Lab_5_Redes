@@ -42,7 +42,7 @@ if __name__ == "__main__":
         data = 1
         sendTime = int(time.mktime(datetime.utcnow().timetuple()))
         while data != "":
-            sock.settimeout(0.5)
+            sock.settimeout(1)
             # print(sys.stderr, 'waiting to receive')
             data, server = sock.recvfrom(buffer_size)
             parsedData = ast.literal_eval(data);
