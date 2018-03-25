@@ -14,8 +14,7 @@ if __name__ == "__main__":
         torrents[d[2]] = {
             "id": d[0]
         }
-    print("Available torrents: " + json.dumps(torrents, indent=2))
-    file = raw_input("Select a torrent>> ")
-    get_torrent = torrents[file]
-    get = client.get_files(get_torrent["id"])
+    print("Your torrents: " + json.dumps(torrents, indent=2))
+    magnet = raw_input("Provide Magnet URL of torrent>> ")
+    get = client.add_url(magnet)
     print(get)
